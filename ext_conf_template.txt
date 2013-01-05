@@ -1,0 +1,14 @@
+# cat=basic/enable/010; type=string; label=Varnish Server: Enter a comma separated list with IP addresses of your Varnish servers.
+server = 127.0.0.1
+
+# cat=basic/enable/020; type=string; label=HTTP ban method: HTTP method to send to the Varnish server to invalidate cache (ban).
+httpMethod = BAN
+
+# cat=basic/enable/030; type=options[HTTP/1.0=http_10,HTTP/1.1=http_11]; label=HTTP protocol: The HTTP protocol to use for the HTTP method.
+httpProtocol = http_11
+
+# cat=basic/enable/040; type=boolean; label=Strip slash: Strip appended slash in requested url to be able to adjust right behaviour in Varnish vcl configuration
+stripSlash = 0
+
+# cat=basic/enable/050; type=boolean; label=Debug mode: Enable debug mode to log additional information
+debug = 0
