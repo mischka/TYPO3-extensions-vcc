@@ -146,25 +146,44 @@ class tx_vcc_hook_docHeaderButtonsHook {
 
 		if (isset($record['pid']) && $record['pid'] > 0) {
 			if ($this->isModuleAccessible($record['pid'], $table)) {
-				// Process last request
+					// Process last request
 				$button = $this->process($table, $record['uid']);
 
-				// Add icon
-				$button .=
-				$buttons['save_close'] = t3lib_iconWorks::getSpriteIcon(
-					'extensions-vcc-clearVarnishCache',
-					array(
-						'html' => '<input type="image" class="c-inputButton" name="_clearvarnishcache" src="clear.gif" title="Clear Varnish cache" />'
-					)
-				);
+					// Generate button with form for list view
+				if ($this->pObj->scriptID === 'ext/recordlist/mod1/index.php') {
+					$button .= $this->generateButton(TRUE);
+				} else {	// Generate plain input button
+					$button .= $this->generateButton();
+				}
 
-					//'<a href="#" onclick="' . htmlspecialchars('window.location.href += \'&_clear_varnish_cache=1\'') . '" title="Clear Varnish cache">' .
-					//t3lib_iconWorks::getSpriteIcon('extensions-vcc-clearVarnishCache') . '</a>';
+					// Add button to button list and extend layout
 				$this->params['buttons']['vcc'] = $button;
 				$buttonWrap = t3lib_parsehtml::getSubpart($pObj->moduleTemplate, '###BUTTON_GROUP_WRAP###');
 				$this->params['markers']['BUTTONLIST_LEFT'] .= t3lib_parsehtml::substituteMarker($buttonWrap, '###BUTTONS###', trim($button));
 			}
 		}
+	}
+
+	/**
+	 * Returns the icon button on condition wrapped with a form
+	 *
+	 * @param boolean $wrapWithForm
+	 *
+	 * @return string
+	 */
+	protected function generateButton($wrapWithForm = FALSE) {
+		$html = '<input type="image" class="c-inputButton" name="_clearvarnishcache" src="clear.gif" title="Clear Varnish cache" />';
+
+		if ($wrapWithForm) {
+			$html = '<form action="'. t3lib_div::getindpenv('REQUEST_URI') . '" method="post">' . $html . '</form>';
+		}
+
+		return t3lib_iconWorks::getSpriteIcon(
+			'extensions-vcc-clearVarnishCache',
+			array(
+				'html' => $html
+			)
+		);
 	}
 
 	/**
