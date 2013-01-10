@@ -52,6 +52,11 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	var $tsConfigService = NULL;
 
 	/**
+	 * @var array
+	 */
+	var $hookObjects = array();
+
+	/**
 	 * @var string
 	 */
 	var $httpMethod = '';
@@ -97,6 +102,9 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		}
 
 		$this->contentObject = t3lib_div::makeInstance('tslib_cObj');
+
+			// Initialize hook objects
+		$this->initializeHookObjects();
 	}
 
 	/**
@@ -146,6 +154,20 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$GLOBALS['TSFE']->getConfigArray();
 
 		TSpagegen::pagegenInit();
+	}
+
+	protected function initializeHookObjects() {
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vcc']['hooks']['communicationService'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vcc']['hooks']['communicationService'] as $classReference) {
+				$hookObject = t3lib_div::getUserObj($classReference);
+
+					// Hook objects have to implement interface
+				if ($hookObject instanceof tx_vcc_hook_communicationServiceHookInterface) {
+					$this->hookObjects[] = $hookObject;
+				}
+			}
+			unset($classReference);
+		}
 	}
 
 	/**
@@ -288,10 +310,10 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 				// Check for curl functions
 			if (!function_exists('curl_init')) {
 					// TODO: Implement fallback to file_get_contents()
-					// TODO: Check TYPO3_CONF_VARS for curl
 				$response['status'] = t3lib_FlashMessage::ERROR;
 				$response['message'] = 'No curl_init available';
 			} else {
+					// TODO: Check TYPO3_CONF_VARS for curl
 					// If no host was given we need to loop over all
 				$hostArray = array();
 				if ($host !== '') {
@@ -344,6 +366,13 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 						// Store outgoing header
 					curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
 
+						// Include preProcess hook (e.g. to set some alternative curl options
+					foreach ($this->hookObjects as $hookObject) {
+							/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
+						$hookObject->preProcess($ch, $request, $response, $this);
+					}
+					unset($hookObject);
+
 					$header = curl_exec($ch);
 					if (!curl_error($ch)) {
 						$response['status'] = (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) ? t3lib_FlashMessage::OK : t3lib_FlashMessage::ERROR;
@@ -353,6 +382,13 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 						$response['message'] = curl_error($ch);
 					}
 					$response['requestHeader'] = preg_split('/(\r|\n)+/m', trim(curl_getinfo($ch, CURLINFO_HEADER_OUT)));
+
+						// Include postProcess hook (e.g. to start some other jobs)
+					foreach ($this->hookObjects as $hookObject) {
+							/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
+						$hookObject->postProcess($ch, $request, $response, $this);
+					}
+					unset($hookObject);
 
 					curl_close($ch);
 
@@ -421,8 +457,8 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php'])  {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php']);
+if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php'])  {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php']);
 }
 
 ?>

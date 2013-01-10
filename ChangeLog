@@ -1,3 +1,7 @@
+2013-01-10 Nicole Cordes <cordes@cps-it.de>
+
+	* Added preProcess and postProcess hooks to the communication service
+
 2013-01-08 Nicole Cordes <cordes@cps-it.de>
 
 	* Fixed icon link in web->list view

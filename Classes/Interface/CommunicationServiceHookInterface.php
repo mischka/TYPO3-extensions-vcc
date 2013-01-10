@@ -23,53 +23,38 @@
  ***************************************************************/
 
 /**
- * Service to handle extension settings
+ * Adds the interface for hook objects of the communicationService
  *
  * @author Nicole Cordes <cordes@cps-it.de>
  * @package TYPO3
  * @subpackage vcc
  */
-class tx_vcc_service_extensionSettingService implements t3lib_Singleton {
-
-	const extensionKey = 'vcc';
+interface tx_vcc_hook_communicationServiceHookInterface {
 
 	/**
-	 * @var array
-	 */
-	var $configuration = array();
-
-	/**
-	 * Initialize the object
+	 * Function which is called before the request is sent to the server
+	 *
+	 * @param resource $ch
+	 * @param string $request
+	 * @param array $response
+	 * @param tx_vcc_service_communicationService $pObj
 	 *
 	 * @return void
 	 */
-	public function __construct() {
-		$this->configuration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][self::extensionKey]);
-	}
+	public function preProcess(&$ch, &$request, &$response, &$pObj);
 
 	/**
-	 * Injects the logging service
+	 * Function which is called after the request was sent to the server and
+	 * some response options were set
 	 *
-	 * @param tx_vcc_service_loggingService $loggingService
+	 * @param resource $ch
+	 * @param string $request
+	 * @param array $response
+	 * @param tx_vcc_service_communicationService $pObj
 	 *
 	 * @return void
 	 */
-	public function injectLoggingService(tx_vcc_service_loggingService $loggingService) {
-		$this->loggingService = $loggingService;
-	}
-
-	/**
-	 * Returns the configuration
-	 *
-	 * @return array
-	 */
-	public function getConfiguration() {
-		return $this->configuration;
-	}
-}
-
-if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/ExtensionSettingService.php'])  {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/ExtensionSettingService.php']);
+	public function postProcess(&$ch, &$request, &$response, &$pObj);
 }
 
 ?>
