@@ -67,9 +67,14 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	var $httpProtocol = '';
 
 	/**
-	 * @var integer
+	 * @var boolean
 	 */
-	var $stripSlash = 0;
+	var $stripSlash = FALSE;
+
+	/**
+	 * @var boolean
+	 */
+	var $enableIndexScript = FALSE;
 
 	/**
 	 * @var array
@@ -96,6 +101,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$this->httpMethod = trim($configuration['httpMethod']);
 		$this->httpProtocol = trim($configuration['httpProtocol']);
 		$this->stripSlash = $configuration['stripSlash'];
+		$this->enableIndexScript = $configuration['enableIndexScript'];
 
 		if (!is_object($GLOBALS['TSFE'])) {
 			$this->createTSFE();
@@ -204,6 +210,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$this->contentObject->data = $record;
 
 		$url = $this->contentObject->typoLink_URL($typolink);
+		$LD = $this->contentObject->lastTypoLinkLD;
 
 			// Check for root site
 		if ($url === '' && $table === 'pages') {
@@ -223,13 +230,19 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 			// Process only for valid URLs
 		if ($url !== '') {
 
-				// Remove any host if set
-			if (strpos($url, '://') !== FALSE) {
-				$urlArray = parse_url($url);
-				$url = substr($url, strlen($urlArray['scheme'] . '://' . $urlArray['host']));
+			$url = $this->removeHost($url);
+			$responseArray = $this->processClearCacheCommand($url, $pid, $host);
+
+				// Check support of index.php script
+			if ($this->enableIndexScript) {
+				$url = $LD['url'] . $LD['linkVars'];
+				$url = $this->removeHost($url);
+
+				$indexResponseArray = $this->processClearCacheCommand($url, $pid, $host);
+				$responseArray = array_merge($responseArray, $indexResponseArray);
 			}
 
-			return $this->processClearCacheCommand($url, $pid, $host);
+			return $responseArray;
 		}
 
 		return array(
@@ -284,6 +297,22 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	}
 
 	/**
+	 * Remove any host from an url
+	 *
+	 * @param string $url
+	 *
+	 * @return string
+	 */
+	protected function removeHost($url) {
+		if (strpos($url, '://') !== FALSE) {
+			$urlArray = parse_url($url);
+			$url = substr($url, strlen($urlArray['scheme'] . '://' . $urlArray['host']));
+		}
+
+		return $url;
+	}
+
+	/**
 	 * Processes the CURL request and sends action to Varnish server
 	 *
 	 * @param string $url
@@ -313,7 +342,6 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 				$response['status'] = t3lib_FlashMessage::ERROR;
 				$response['message'] = 'No curl_init available';
 			} else {
-					// TODO: Check TYPO3_CONF_VARS for curl
 					// If no host was given we need to loop over all
 				$hostArray = array();
 				if ($host !== '') {
@@ -360,8 +388,14 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 					curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->httpMethod);
 					curl_setopt($ch, CURLOPT_HTTP_VERSION, ($this->httpProtocol === 'http_10') ? CURL_HTTP_VERSION_1_0 : CURL_HTTP_VERSION_1_1);
 
-						// Set X-Host header
-					curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-Host: ' . $xHost));
+						// Set X-Host and X-Url header
+						// Set X-Host-Quoted and X-Url-Quoted with added slashes for regular expression in vcl
+					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+						'X-Host: ' . $xHost,
+						'X-Host-Quoted: ' . preg_quote($xHost),
+						'X-Url: ' . $url,
+						'X-Url-Quoted: ' . preg_quote($url)
+					));
 
 						// Store outgoing header
 					curl_setopt($ch, CURLINFO_HEADER_OUT, 1);

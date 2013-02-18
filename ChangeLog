@@ -1,6 +1,7 @@
 2013-02-18 Nicole Cordes <cordes@cps-it.de>
 
 	* Fixed typo3 version dependency
+	* Added support for index.php script
 
 2013-01-10 Nicole Cordes <cordes@cps-it.de>
 
