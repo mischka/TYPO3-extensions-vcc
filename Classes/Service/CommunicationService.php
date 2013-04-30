@@ -162,6 +162,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 				// Set current backend language
 			$GLOBALS['TSFE']->getPageRenderer()->setLanguage($GLOBALS['LANG']->lang);
 		}
+		$GLOBALS['TSFE']->newcObj();
 
 		TSpagegen::pagegenInit();
 	}
