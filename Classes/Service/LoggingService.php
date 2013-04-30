@@ -31,22 +31,27 @@
  */
 class tx_vcc_service_loggingService implements t3lib_Singleton {
 
-	const OK      = 0;
-	const NOTICE  = 1;
-	const INFO    = 2;
-	const WARNING = 3;
-	const ERROR   = 4;
-	const DEBUG   = 99;
+	const DEBUG = 99;
 
-	/**
-	 * @var tx_vcc_service_extensionSettingService|NULL
-	 */
-	var $extensionSettingService = NULL;
+	const ERROR = 4;
+
+	const INFO = 2;
+
+	const NOTICE = 1;
+
+	const OK = 0;
+
+	const WARNING = 3;
 
 	/**
 	 * @var integer
 	 */
 	var $debug = 0;
+
+	/**
+	 * @var tx_vcc_service_extensionSettingService|NULL
+	 */
+	var $extensionSettingService = NULL;
 
 	/**
 	 * @var string
@@ -82,8 +87,19 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 	/**
 	 * @return void
 	 */
+	public function debug($message, $logData = array(), $pid = 0, $callerDepth = 2, $caller = NULL) {
+		if ($this->debug) {
+			// Adjust callerDepth due to debug function
+			$callerDepth++;
+			$this->log($message, $logData, self::DEBUG, $pid, $callerDepth, $caller);
+		}
+	}
+
+	/**
+	 * @return void
+	 */
 	public function log($message, $logData = array(), $type = self::INFO, $pid = 0, $callerDepth = 2, $caller = NULL) {
-			// Get caller if not already set
+		// Get caller if not already set
 		if ($caller === NULL) {
 			$caller = $this->getCallerFromBugtrace($callerDepth);
 		}
@@ -102,26 +118,15 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 	}
 
 	/**
-	 * @return void
-	 */
-	public function debug($message, $logData = array(), $pid = 0, $callerDepth = 2, $caller = NULL) {
-		if ($this->debug) {
-				// Adjust callerDepth due to debug function
-			$callerDepth++;
-			$this->log($message, $logData, self::DEBUG, $pid, $callerDepth, $caller);
-		}
-	}
-
-	/**
 	 * @param integer $callerDepth
 	 *
 	 * @return array
 	 */
 	protected function getCallerFromBugtrace($callerDepth) {
-			// Get trace array
+		// Get trace array
 		$trace = debug_backtrace();
 
-			// Adjust callerDepth due to separate function
+		// Adjust callerDepth due to separate function
 		$callerDepth++;
 		if (isset($trace[$callerDepth])) {
 			return $trace[$callerDepth];
@@ -131,7 +136,7 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 	}
 }
 
-if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/LoggingService.php'])  {
+if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/LoggingService.php']) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/LoggingService.php']);
 }
 

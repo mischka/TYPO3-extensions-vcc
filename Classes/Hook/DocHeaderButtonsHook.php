@@ -1,5 +1,5 @@
 <?php
-	/***************************************************************
+/***************************************************************
  *  Copyright notice
  *
  *  (c) 2012 Nicole Cordes <cordes@cps-it.de>
@@ -37,9 +37,9 @@ class tx_vcc_hook_docHeaderButtonsHook {
 	var $communicationService = NULL;
 
 	/**
-	 * @var tx_vcc_service_tsConfigService|NULL
+	 * @var template|NULL
 	 */
-	var $tsConfigService = NULL;
+	var $pObj = NULL;
 
 	/**
 	 * @var array
@@ -47,14 +47,14 @@ class tx_vcc_hook_docHeaderButtonsHook {
 	var $params = array();
 
 	/**
-	 * @var template|NULL
-	 */
-	var $pObj = NULL;
-
-	/**
 	 * @var string
 	 */
 	var $permsClause = '';
+
+	/**
+	 * @var tx_vcc_service_tsConfigService|NULL
+	 */
+	var $tsConfigService = NULL;
 
 	/**
 	 * Initialize the object
@@ -108,7 +108,7 @@ class tx_vcc_hook_docHeaderButtonsHook {
 		$record = array();
 		$table = '';
 
-			// For web -> page view or web -> list view
+		// For web -> page view or web -> list view
 		if ($this->pObj->scriptID === 'ext/cms/layout/db_layout.php' || $this->pObj->scriptID === 'ext/recordlist/mod1/index.php') {
 			$id = t3lib_div::_GP('id');
 			if (is_object($GLOBALS['SOBE']) && $GLOBALS['SOBE']->current_sys_language) {
@@ -124,7 +124,7 @@ class tx_vcc_hook_docHeaderButtonsHook {
 					'pid' => $id
 				);
 			}
-		} elseif ($this->pObj->scriptID === 'typo3/alt_doc.php') {	// For record edit
+		} elseif ($this->pObj->scriptID === 'typo3/alt_doc.php') { // For record edit
 			$editConf = t3lib_div::_GP('edit');
 			if (is_array($editConf) && !empty($editConf)) {
 				// Finding the current table
@@ -146,17 +146,17 @@ class tx_vcc_hook_docHeaderButtonsHook {
 
 		if (isset($record['pid']) && $record['pid'] > 0) {
 			if ($this->isModuleAccessible($record['pid'], $table)) {
-					// Process last request
+				// Process last request
 				$button = $this->process($table, $record['uid']);
 
-					// Generate button with form for list view
+				// Generate button with form for list view
 				if ($this->pObj->scriptID === 'ext/recordlist/mod1/index.php') {
 					$button .= $this->generateButton(TRUE);
-				} else {	// Generate plain input button
+				} else { // Generate plain input button
 					$button .= $this->generateButton();
 				}
 
-					// Add button to button list and extend layout
+				// Add button to button list and extend layout
 				$this->params['buttons']['vcc'] = $button;
 				$buttonWrap = t3lib_parsehtml::getSubpart($pObj->moduleTemplate, '###BUTTON_GROUP_WRAP###');
 				$this->params['markers']['BUTTONLIST_LEFT'] .= t3lib_parsehtml::substituteMarker($buttonWrap, '###BUTTONS###', trim($button));
@@ -175,7 +175,7 @@ class tx_vcc_hook_docHeaderButtonsHook {
 		$html = '<input type="image" class="c-inputButton" name="_clearvarnishcache" src="clear.gif" title="Clear Varnish cache" />';
 
 		if ($wrapWithForm) {
-			$html = '<form action="'. t3lib_div::getindpenv('REQUEST_URI') . '" method="post">' . $html . '</form>';
+			$html = '<form action="' . t3lib_div::getindpenv('REQUEST_URI') . '" method="post">' . $html . '</form>';
 		}
 
 		return t3lib_iconWorks::getSpriteIcon(
@@ -197,10 +197,10 @@ class tx_vcc_hook_docHeaderButtonsHook {
 	protected function isModuleAccessible($pageId, $table) {
 		$access = FALSE;
 
-			// Check edit rights for page as cache can be flushed then only
+		// Check edit rights for page as cache can be flushed then only
 		$pageinfo = t3lib_BEfunc::readPageAccess($pageId, $this->permsClause);
 		if ($pageinfo !== FALSE) {
-				// Get TSconfig for extension
+			// Get TSconfig for extension
 			$tsConfig = $this->tsConfigService->getConfiguration($pageId);
 			if (isset($tsConfig[$table]) && !empty($tsConfig[$table])) {
 				$access = TRUE;
@@ -229,7 +229,7 @@ class tx_vcc_hook_docHeaderButtonsHook {
 	}
 }
 
-if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Hook/DocHeaderButtonsHook.php'])  {
+if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Hook/DocHeaderButtonsHook.php']) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Hooks/DocHeaderButtonsHook.php']);
 }
 

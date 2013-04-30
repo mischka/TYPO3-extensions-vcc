@@ -37,19 +37,14 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	var $contentObject = NULL;
 
 	/**
+	 * @var boolean
+	 */
+	var $enableIndexScript = FALSE;
+
+	/**
 	 * @var tx_vcc_service_extensionSettingService|NULL
 	 */
 	var $extensionSettingService = NULL;
-
-	/**
-	 * @var tx_vcc_service_loggingService|NULL
-	 */
-	var $loggingService = NULL;
-
-	/**
-	 * @var tx_vcc_service_tsConfigService|NULL
-	 */
-	var $tsConfigService = NULL;
 
 	/**
 	 * @var array
@@ -67,19 +62,24 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	var $httpProtocol = '';
 
 	/**
-	 * @var boolean
+	 * @var tx_vcc_service_loggingService|NULL
 	 */
-	var $stripSlash = FALSE;
-
-	/**
-	 * @var boolean
-	 */
-	var $enableIndexScript = FALSE;
+	var $loggingService = NULL;
 
 	/**
 	 * @var array
 	 */
 	var $serverArray = array();
+
+	/**
+	 * @var boolean
+	 */
+	var $stripSlash = FALSE;
+
+	/**
+	 * @var tx_vcc_service_tsConfigService|NULL
+	 */
+	var $tsConfigService = NULL;
 
 	/**
 	 * Initialize the object
@@ -109,7 +109,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 
 		$this->contentObject = t3lib_div::makeInstance('tslib_cObj');
 
-			// Initialize hook objects
+		// Initialize hook objects
 		$this->initializeHookObjects();
 	}
 
@@ -146,39 +146,104 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$this->tsConfigService = $tsConfigService;
 	}
 
-	protected function createTSFE() {
-		if (!is_object($GLOBALS['TT'])) {
-			$GLOBALS['TT'] = t3lib_div::makeInstance('t3lib_TimeTrackNull');
-		}
-
-		$GLOBALS['TSFE'] = t3lib_div::makeInstance('tslib_fe', $GLOBALS['TYPO3_CONF_VARS'], 1, '');
-		$GLOBALS['TSFE']->connectToDB();
-		$GLOBALS['TSFE']->initFEuser();
-		$GLOBALS['TSFE']->determineId();
-		$GLOBALS['TSFE']->getCompressedTCarray();
-		$GLOBALS['TSFE']->initTemplate();
-		$GLOBALS['TSFE']->getConfigArray();
-		if (TYPO3_MODE == 'BE') {
-				// Set current backend language
-			$GLOBALS['TSFE']->getPageRenderer()->setLanguage($GLOBALS['LANG']->lang);
-		}
-		$GLOBALS['TSFE']->newcObj();
-
-		TSpagegen::pagegenInit();
-	}
-
 	protected function initializeHookObjects() {
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vcc']['hooks']['communicationService'])) {
 			foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['vcc']['hooks']['communicationService'] as $classReference) {
 				$hookObject = t3lib_div::getUserObj($classReference);
 
-					// Hook objects have to implement interface
+				// Hook objects have to implement interface
 				if ($hookObject instanceof tx_vcc_hook_communicationServiceHookInterface) {
 					$this->hookObjects[] = $hookObject;
 				}
 			}
 			unset($classReference);
 		}
+	}
+
+	/**
+	 * Generates the flash messages for the requests
+	 *
+	 * @param array $resultArray
+	 *
+	 * @return string
+	 */
+	public function generateBackendMessage(array $resultArray) {
+		$content = '';
+
+		if (is_array($resultArray)) {
+			foreach ($resultArray as $result) {
+				switch ($result['status']) {
+					case t3lib_FlashMessage::OK:
+						// Extend button marker with messages
+						$content .= '<script type="text/javascript">
+							parent.TYPO3.Flashmessage.display(
+								TYPO3.Severity.ok,
+								"Server: ' . $result['server'] . ' // Host: ' . $result['host'] . '",
+								"Request: ' . $result['request'] . '<br />Message: ' . $result['message'][0] . '",
+								5
+							);
+						</script>';
+						break;
+
+					default:
+						// Extend button marker with messages
+						$content .= '<script type="text/javascript">
+							parent.TYPO3.Flashmessage.display(
+								TYPO3.Severity.error,
+								"Server: ' . $result['server'] . ' // Host: ' . $result['host'] . '",
+								"Request: ' . $result['request'] . '<br />Message: ' . implode('<br />', $result['message']) . '<br />Sent:<br />' . implode('<br />', $result['requestHeader']) . '",
+								10
+							);
+						</script>';
+						break;
+				}
+			}
+			unset($result);
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Send clear cache commands for pages to defined server
+	 *
+	 * @param string $fileName
+	 * @param string $host
+	 *
+	 * @return array
+	 */
+	public function sendClearCacheCommandForFiles($fileName, $host = '') {
+		// Log debug information
+		$logData = array(
+			'fileName' => $fileName,
+			'host' => $host
+		);
+		$this->loggingService->debug('CommunicationService::sendClearCacheCommandForFiles arguments', $logData);
+
+		// If no host was given get all
+		if ($host === '') {
+			$hostArray = array();
+
+			// Get all domain records and check page access
+			$domainArray = t3lib_BEfunc::getRecordsByField('sys_domain', 'redirectTo', '', ' AND hidden=0');
+			if (is_array($domainArray) && !empty($domainArray)) {
+				$permsClause = $GLOBALS['BE_USER']->getPagePermsClause(2);
+				foreach ($domainArray as $domain) {
+					$pageinfo = t3lib_BEfunc::readPageAccess($domain['pid'], $permsClause);
+					if ($pageinfo !== FALSE) {
+						$hostArray[] = $domain['domainName'];
+					}
+				}
+				unset($domain);
+			}
+			$host = implode(',', $hostArray);
+
+			// Log debug information
+			$logData['host'] = $host;
+			$this->loggingService->debug('CommunicationService::sendClearCacheCommandForFiles built host', $logData);
+		}
+
+		return $this->processClearCacheCommand($fileName, 0, $host);
 	}
 
 	/**
@@ -191,17 +256,17 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	 * @return array
 	 */
 	public function sendClearCacheCommandForTables($table, $uid, $host = '') {
-			// Get current record to process
+		// Get current record to process
 		$record = t3lib_BEfunc::getRecord($table, $uid);
 
-			// Build request
+		// Build request
 		if ($table === 'pages') {
 			$pid = $record['uid'];
 		} else {
 			$pid = $record['pid'];
 		}
 
-			// Log debug information
+		// Log debug information
 		$logData = array(
 			'table' => $table,
 			'uid' => $uid,
@@ -217,28 +282,28 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$url = $this->contentObject->typoLink_URL($typolink);
 		$LD = $this->contentObject->lastTypoLinkLD;
 
-			// Check for root site
+		// Check for root site
 		if ($url === '' && $table === 'pages') {
 			$rootline = t3lib_BEfunc::BEgetRootLine($uid);
 			if (is_array($rootline) && count($rootline) > 1) {
-					// If uid equals the site root we have to process
+				// If uid equals the site root we have to process
 				if ($uid == $rootline[1]['uid']) {
 					$url = '/';
 				}
 			}
 		}
 
-			// Log debug information
+		// Log debug information
 		$logData['url'] = $url;
 		$this->loggingService->debug('CommunicationService::sendClearCacheCommandForTables built url', $logData, $pid);
 
-			// Process only for valid URLs
+		// Process only for valid URLs
 		if ($url !== '') {
 
 			$url = $this->removeHost($url);
 			$responseArray = $this->processClearCacheCommand($url, $pid, $host);
 
-				// Check support of index.php script
+			// Check support of index.php script
 			if ($this->enableIndexScript) {
 				$url = $LD['url'] . $LD['linkVars'];
 				$url = $this->removeHost($url);
@@ -259,62 +324,25 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		);
 	}
 
-	/**
-	 * Send clear cache commands for pages to defined server
-	 *
-	 * @param string $fileName
-	 * @param string $host
-	 *
-	 * @return array
-	 */
-	public function sendClearCacheCommandForFiles($fileName, $host = '') {
-			// Log debug information
-		$logData = array(
-			'fileName' => $fileName,
-			'host' => $host
-		);
-		$this->loggingService->debug('CommunicationService::sendClearCacheCommandForFiles arguments', $logData);
-
-			// If no host was given get all
-		if ($host === '') {
-			$hostArray = array();
-
-				// Get all domain records and check page access
-			$domainArray = t3lib_BEfunc::getRecordsByField('sys_domain', 'redirectTo', '', ' AND hidden=0');
-			if (is_array($domainArray) && !empty($domainArray)) {
-				$permsClause = $GLOBALS['BE_USER']->getPagePermsClause(2);
-				foreach ($domainArray as $domain) {
-					$pageinfo = t3lib_BEfunc::readPageAccess($domain['pid'], $permsClause);
-					if ($pageinfo !== FALSE) {
-						$hostArray[] = $domain['domainName'];
-					}
-				}
-				unset($domain);
-			}
-			$host = implode(',', $hostArray);
-
-				// Log debug information
-			$logData['host'] = $host;
-			$this->loggingService->debug('CommunicationService::sendClearCacheCommandForFiles built host', $logData);
+	protected function createTSFE() {
+		if (!is_object($GLOBALS['TT'])) {
+			$GLOBALS['TT'] = t3lib_div::makeInstance('t3lib_TimeTrackNull');
 		}
 
-		return $this->processClearCacheCommand($fileName, 0, $host);
-	}
-
-	/**
-	 * Remove any host from an url
-	 *
-	 * @param string $url
-	 *
-	 * @return string
-	 */
-	protected function removeHost($url) {
-		if (strpos($url, '://') !== FALSE) {
-			$urlArray = parse_url($url);
-			$url = substr($url, strlen($urlArray['scheme'] . '://' . $urlArray['host']));
+		$GLOBALS['TSFE'] = t3lib_div::makeInstance('tslib_fe', $GLOBALS['TYPO3_CONF_VARS'], 1, '');
+		$GLOBALS['TSFE']->connectToDB();
+		$GLOBALS['TSFE']->initFEuser();
+		$GLOBALS['TSFE']->determineId();
+		$GLOBALS['TSFE']->getCompressedTCarray();
+		$GLOBALS['TSFE']->initTemplate();
+		$GLOBALS['TSFE']->getConfigArray();
+		if (TYPO3_MODE == 'BE') {
+			// Set current backend language
+			$GLOBALS['TSFE']->getPageRenderer()->setLanguage($GLOBALS['LANG']->lang);
 		}
+		$GLOBALS['TSFE']->newcObj();
 
-		return $url;
+		TSpagegen::pagegenInit();
 	}
 
 	/**
@@ -334,25 +362,25 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 				'server' => $server
 			);
 
-				// Build request
+			// Build request
 			if ($this->stripSlash) {
 				$url = rtrim($url, '/');
 			}
 			$request = $server . '/' . ltrim($url, '/');
 			$response['request'] = $request;
 
-				// Check for curl functions
+			// Check for curl functions
 			if (!function_exists('curl_init')) {
-					// TODO: Implement fallback to file_get_contents()
+				// TODO: Implement fallback to file_get_contents()
 				$response['status'] = t3lib_FlashMessage::ERROR;
 				$response['message'] = 'No curl_init available';
 			} else {
-					// If no host was given we need to loop over all
+				// If no host was given we need to loop over all
 				$hostArray = array();
 				if ($host !== '') {
 					$hostArray = t3lib_div::trimExplode(',', $host, 1);
 				} else {
-						// Get all (non-redirecting) domains from root
+					// Get all (non-redirecting) domains from root
 					$rootLine = t3lib_BEfunc::BEgetRootLine($pid);
 					foreach ($rootLine as $row) {
 						$domainArray = t3lib_BEfunc::getRecordsByField('sys_domain', 'pid', $row['uid'], ' AND redirectTo="" AND hidden=0');
@@ -366,35 +394,35 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 					unset($row);
 				}
 
-					// Fallback to current server
+				// Fallback to current server
 				if (empty($hostArray)) {
 					$domain = rtrim(t3lib_div::getIndpEnv('TYPO3_SITE_URL'), '/');
 					$hostArray[] = substr($domain, strpos($domain, '://') + 3);
 				}
 
-					// Loop over hosts
+				// Loop over hosts
 				foreach ($hostArray as $xHost) {
 					$response['host'] = $xHost;
 
-						// Curl initialization
+					// Curl initialization
 					$ch = curl_init();
 
-						// Disable direct output
+					// Disable direct output
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
-						// Only get header response
+					// Only get header response
 					curl_setopt($ch, CURLOPT_HEADER, 1);
 					curl_setopt($ch, CURLOPT_NOBODY, 1);
 
-						// Set url
+					// Set url
 					curl_setopt($ch, CURLOPT_URL, $request);
 
-						// Set method and protocol
+					// Set method and protocol
 					curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->httpMethod);
 					curl_setopt($ch, CURLOPT_HTTP_VERSION, ($this->httpProtocol === 'http_10') ? CURL_HTTP_VERSION_1_0 : CURL_HTTP_VERSION_1_1);
 
-						// Set X-Host and X-Url header
-						// Set X-Host-Quoted and X-Url-Quoted with added slashes for regular expression in vcl
+					// Set X-Host and X-Url header
+					// Set X-Host-Quoted and X-Url-Quoted with added slashes for regular expression in vcl
 					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 						'X-Host: ' . $xHost,
 						'X-Host-Quoted: ' . preg_quote($xHost),
@@ -402,12 +430,12 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 						'X-Url-Quoted: ' . preg_quote($url)
 					));
 
-						// Store outgoing header
+					// Store outgoing header
 					curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
 
-						// Include preProcess hook (e.g. to set some alternative curl options
+					// Include preProcess hook (e.g. to set some alternative curl options
 					foreach ($this->hookObjects as $hookObject) {
-							/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
+						/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
 						$hookObject->preProcess($ch, $request, $response, $this);
 					}
 					unset($hookObject);
@@ -422,16 +450,16 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 					}
 					$response['requestHeader'] = preg_split('/(\r|\n)+/m', trim(curl_getinfo($ch, CURLINFO_HEADER_OUT)));
 
-						// Include postProcess hook (e.g. to start some other jobs)
+					// Include postProcess hook (e.g. to start some other jobs)
 					foreach ($this->hookObjects as $hookObject) {
-							/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
+						/** @var tx_vcc_hook_communicationServiceHookInterface $hookObject */
 						$hookObject->postProcess($ch, $request, $response, $this);
 					}
 					unset($hookObject);
 
 					curl_close($ch);
 
-						// Log debug information
+					// Log debug information
 					$logData = array(
 						'url' => $url,
 						'pid' => $pid,
@@ -452,51 +480,23 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	}
 
 	/**
-	 * Generates the flash messages for the requests
+	 * Remove any host from an url
 	 *
-	 * @param array $resultArray
+	 * @param string $url
 	 *
 	 * @return string
 	 */
-	public function generateBackendMessage(array $resultArray) {
-		$content = '';
-
-		if (is_array($resultArray)) {
-			foreach ($resultArray as $result) {
-				switch ($result['status']) {
-					case t3lib_FlashMessage::OK:
-							// Extend button marker with messages
-						$content .= '<script type="text/javascript">
-							parent.TYPO3.Flashmessage.display(
-								TYPO3.Severity.ok,
-								"Server: ' . $result['server'] . ' // Host: ' . $result['host'] . '",
-								"Request: ' . $result['request'] . '<br />Message: ' . $result['message'][0] . '",
-								5
-							);
-						</script>';
-						break;
-
-					default:
-							// Extend button marker with messages
-						$content .= '<script type="text/javascript">
-							parent.TYPO3.Flashmessage.display(
-								TYPO3.Severity.error,
-								"Server: ' . $result['server'] . ' // Host: ' . $result['host'] . '",
-								"Request: ' . $result['request'] . '<br />Message: ' . implode('<br />', $result['message']) . '<br />Sent:<br />' . implode('<br />', $result['requestHeader']) . '",
-								10
-							);
-						</script>';
-						break;
-				}
-			}
-			unset($result);
+	protected function removeHost($url) {
+		if (strpos($url, '://') !== FALSE) {
+			$urlArray = parse_url($url);
+			$url = substr($url, strlen($urlArray['scheme'] . '://' . $urlArray['host']));
 		}
 
-		return $content;
+		return $url;
 	}
 }
 
-if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php'])  {
+if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php']) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/CommunicationService.php']);
 }
 

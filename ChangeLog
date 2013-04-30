@@ -2,6 +2,7 @@
 
 	* Set current backend language as frontend language
 	* Initialise a new content object in simulated frontend
+	* Code reformatting
 
 2013-02-18 Nicole Cordes <cordes@cps-it.de>
 
