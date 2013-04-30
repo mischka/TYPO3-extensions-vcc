@@ -158,6 +158,10 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		$GLOBALS['TSFE']->getCompressedTCarray();
 		$GLOBALS['TSFE']->initTemplate();
 		$GLOBALS['TSFE']->getConfigArray();
+		if (TYPO3_MODE == 'BE') {
+				// Set current backend language
+			$GLOBALS['TSFE']->getPageRenderer()->setLanguage($GLOBALS['LANG']->lang);
+		}
 
 		TSpagegen::pagegenInit();
 	}
