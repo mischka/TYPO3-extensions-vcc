@@ -446,7 +446,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 						$response['message'] = preg_split('/(\r|\n)+/m', trim($header));
 					} else {
 						$response['status'] = t3lib_FlashMessage::ERROR;
-						$response['message'] = curl_error($ch);
+						$response['message'] = array(curl_error($ch));
 					}
 					$response['requestHeader'] = preg_split('/(\r|\n)+/m', trim(curl_getinfo($ch, CURLINFO_HEADER_OUT)));
 

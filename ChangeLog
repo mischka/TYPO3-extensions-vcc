@@ -1,3 +1,7 @@
+2013-05-02 Nicole Cordes <cordes@cps-it.de>
+
+	* Fixed response message not returning an array on error
+
 2013-05-01 Nicole Cordes <cordes@cps-it.de>
 
 	* Set current backend language as frontend language
