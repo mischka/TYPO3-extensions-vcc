@@ -1,3 +1,7 @@
+2013-08-02 Nicole Cordes <cordes@cps-it.de>
+
+	* Added maximum age for log entries
+
 2013-05-02 Nicole Cordes <cordes@cps-it.de>
 
 	* Fixed response message not returning an array on error

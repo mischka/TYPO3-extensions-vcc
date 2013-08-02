@@ -44,19 +44,24 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 	const WARNING = 3;
 
 	/**
-	 * @var integer
-	 */
-	var $debug = 0;
-
-	/**
 	 * @var tx_vcc_service_extensionSettingService|NULL
 	 */
 	var $extensionSettingService = NULL;
 
 	/**
+	 * @var integer
+	 */
+	var $debug = 0;
+
+	/**
 	 * @var string
 	 */
 	var $hash = '';
+
+	/**
+	 * @var integer
+	 */
+	var $maxLogAge = 0;
 
 	/**
 	 * Initialize the object
@@ -69,6 +74,7 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 
 		$configuration = $this->extensionSettingService->getConfiguration();
 		$this->debug = $configuration['debug'];
+		$this->maxLogAge = $configuration['maxLogAge'];
 
 		$this->hash = md5(uniqid('LoggingService', TRUE));
 	}
@@ -115,6 +121,12 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 			'hash' => $this->hash
 		);
 		$GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_vcc_log', $insertArray);
+
+		// Remove old entries
+		$month = date('m', time());
+		$day = 0 - $this->maxLogAge;
+		$year = date('Y', time());
+		$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_vcc_log', 'tstamp<' . mktime(0, 0, 0, $month, $day, $year));
 	}
 
 	/**
