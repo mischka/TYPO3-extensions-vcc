@@ -209,10 +209,11 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	 *
 	 * @param string $fileName
 	 * @param string $host
+	 * @param boolean $quote
 	 *
 	 * @return array
 	 */
-	public function sendClearCacheCommandForFiles($fileName, $host = '') {
+	public function sendClearCacheCommandForFiles($fileName, $host = '', $quote = TRUE) {
 		// Log debug information
 		$logData = array(
 			'fileName' => $fileName,
@@ -243,7 +244,7 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 			$this->loggingService->debug('CommunicationService::sendClearCacheCommandForFiles built host', $logData);
 		}
 
-		return $this->processClearCacheCommand($fileName, 0, $host);
+		return $this->processClearCacheCommand($fileName, 0, $host, $quote);
 	}
 
 	/**
@@ -252,10 +253,11 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	 * @param string $table
 	 * @param integer $id
 	 * @param string $host
+	 * @param boolean $quote
 	 *
 	 * @return array
 	 */
-	public function sendClearCacheCommandForTables($table, $uid, $host = '') {
+	public function sendClearCacheCommandForTables($table, $uid, $host = '', $quote = TRUE) {
 		// Get current record to process
 		$record = t3lib_BEfunc::getRecord($table, $uid);
 
@@ -301,14 +303,14 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 		if ($url !== '') {
 
 			$url = $this->removeHost($url);
-			$responseArray = $this->processClearCacheCommand($url, $pid, $host);
+			$responseArray = $this->processClearCacheCommand($url, $pid, $host, $quote);
 
 			// Check support of index.php script
 			if ($this->enableIndexScript) {
 				$url = $LD['url'] . $LD['linkVars'];
 				$url = $this->removeHost($url);
 
-				$indexResponseArray = $this->processClearCacheCommand($url, $pid, $host);
+				$indexResponseArray = $this->processClearCacheCommand($url, $pid, $host, $quote);
 				$responseArray = array_merge($responseArray, $indexResponseArray);
 			}
 
@@ -351,10 +353,11 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	 * @param string $url
 	 * @param integer $pid
 	 * @param string $host
+	 * @param boolean $quote
 	 *
 	 * @return array
 	 */
-	protected function processClearCacheCommand($url, $pid, $host = '') {
+	protected function processClearCacheCommand($url, $pid, $host = '', $quote = TRUE) {
 		$responseArray = array();
 
 		foreach ($this->serverArray as $server) {
@@ -422,12 +425,9 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 					curl_setopt($ch, CURLOPT_HTTP_VERSION, ($this->httpProtocol === 'http_10') ? CURL_HTTP_VERSION_1_0 : CURL_HTTP_VERSION_1_1);
 
 					// Set X-Host and X-Url header
-					// Set X-Host-Quoted and X-Url-Quoted with added slashes for regular expression in vcl
 					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-						'X-Host: ' . $xHost,
-						'X-Host-Quoted: ' . preg_quote($xHost),
-						'X-Url: ' . $url,
-						'X-Url-Quoted: ' . preg_quote($url)
+						'X-Host: ' . ($quote) ? preg_quote($xHost) : $xHost,
+						'X-Url: ' . ($quote) ? preg_quote($url) : $url,
 					));
 
 					// Store outgoing header

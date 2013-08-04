@@ -16,7 +16,7 @@ sub vcl_recv {
 		if (req.request == "BAN") {
 			if (client.ip ~ flushers) {
 				if (req.http.X-Host) {
-					ban("req.http.host == " + req.http.X-Host + " && req.url ~ " + req.http.X-Url-Quoted + "[/]?(\?|&|$)");
+					ban("req.http.host == " + req.http.X-Host + " && req.url ~ " + req.http.X-Url + "[/]?(\?|&|$)");
 					error 200 "OK";
 				} else {
 					error 400 "Bad Request";

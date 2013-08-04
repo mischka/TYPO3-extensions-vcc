@@ -1,3 +1,7 @@
+2013-08-04 Nicole Cordes <cordes@cps-it.de>
+
+	* Refactored quotation of url and host
+
 2013-08-02 Nicole Cordes <cordes@cps-it.de>
 
 	* Added maximum age for log entries
