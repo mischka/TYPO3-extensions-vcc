@@ -1,34 +1,14 @@
-2013-08-04 Nicole Cordes <cordes@cps-it.de>
-
-	* Refactored quotation of url and host
-
-2013-08-02 Nicole Cordes <cordes@cps-it.de>
-
-	* Added maximum age for log entries
-
-2013-05-02 Nicole Cordes <cordes@cps-it.de>
-
-	* Fixed response message not returning an array on error
-
-2013-05-01 Nicole Cordes <cordes@cps-it.de>
-
-	* Set current backend language as frontend language
-	* Initialise a new content object in simulated frontend
-	* Code reformatting
-
-2013-02-18 Nicole Cordes <cordes@cps-it.de>
-
-	* Fixed typo3 version dependency
-	* Added support for index.php script
-
-2013-01-10 Nicole Cordes <cordes@cps-it.de>
-
-	* Added preProcess and postProcess hooks to the communication service
-
-2013-01-08 Nicole Cordes <cordes@cps-it.de>
-
-	* Fixed icon link in web->list view
-
-2013-01-05 Nicole Cordes <cordes@cps-it.de>
-
-	* Initial release
+2013-11-04         [RELEASE] Release of vcc 1.0.0 (Nicole Cordes)
+2013-09-08 8358043 [BUGFIX] Fixed host and url quotation (Nicole Cordes)
+2013-08-04 f4d485b Refactored quotation of url and host (Nicole Cordes)
+2013-08-02 78fbdfb Added maximum age for log entries (Nicole Cordes)
+2013-05-02 e5611d8 Fixed response message not returning an array on error (Nicole Cordes)
+2013-05-01 3c8ccc4 Code reformatting (Nicole Cordes)
+2013-05-01 67a53c5 Initialise a new content object in simulated frontend (Nicole Cordes)
+2013-05-01 12664a7 Set current backend language as frontend language (Nicole Cordes)
+2013-02-18 e116cc7 Added support for index.php script (Nicole Cordes)
+2013-02-18 e2ab2a8 Fixed typo3 version dependency (Nicole Cordes)
+2013-01-10 636bf51 Added preProcess and postProcess hooks to the communication service (Nicole Cordes)
+2013-01-08 16440e6 Fixed icon link in web->list view (Nicole Cordes)
+2013-01-05 0ad6943 Added text file with default vcl function for ban calls (Nicole Cordes)
+2013-01-05 23225d7 Initial release (Nicole Cordes)

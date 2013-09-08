@@ -426,8 +426,8 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 
 					// Set X-Host and X-Url header
 					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-						'X-Host: ' . ($quote) ? preg_quote($xHost) : $xHost,
-						'X-Url: ' . ($quote) ? preg_quote($url) : $url,
+						'X-Host: ' . (($quote) ? preg_quote($xHost) : $xHost),
+						'X-Url: ' . (($quote) ? preg_quote($url) : $url),
 					));
 
 					// Store outgoing header
