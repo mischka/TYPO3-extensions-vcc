@@ -3,7 +3,7 @@
 /***************************************************************
  * Extension Manager/Repository config file for ext "vcc".
  *
- * Auto generated 04-11-2013 09:19
+ * Auto generated 18-11-2013 16:23
  *
  * Manual updates:
  * Only the data in the array - everything else is removed by next
@@ -31,7 +31,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'dependencies' => 'cms',
 	'module' => '',
 	'state' => 'stable',
-	'version' => '1.0.0',
+	'version' => '1.0.1',
 	'clearCacheOnLoad' => 0,
 	'createDirs' => '',
 	'internal' => '',
@@ -40,7 +40,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'priority' => '',
 	'shy' => '',
 	'uploadfolder' => 0,
-	'_md5_values_when_last_written' => 'a:15:{s:9:"ChangeLog";s:4:"6855";s:16:"ext_autoload.php";s:4:"1c64";s:21:"ext_conf_template.txt";s:4:"8b8d";s:12:"ext_icon.gif";s:4:"7736";s:17:"ext_localconf.php";s:4:"9f06";s:14:"ext_tables.php";s:4:"816b";s:14:"ext_tables.sql";s:4:"d9bc";s:37:"Classes/Hook/DocHeaderButtonsHook.php";s:4:"9e76";s:55:"Classes/Interface/CommunicationServiceHookInterface.php";s:4:"1383";s:40:"Classes/Service/CommunicationService.php";s:4:"1d32";s:43:"Classes/Service/ExtensionSettingService.php";s:4:"3306";s:34:"Classes/Service/LoggingService.php";s:4:"b6f3";s:35:"Classes/Service/TsConfigService.php";s:4:"65b9";s:25:"Documentation/vcc_ban.vcl";s:4:"4911";s:38:"Resources/Public/Icons/CachePlugin.png";s:4:"4312";}',
+	'_md5_values_when_last_written' => 'a:22:{s:9:"ChangeLog";s:4:"5271";s:16:"ext_autoload.php";s:4:"1c64";s:21:"ext_conf_template.txt";s:4:"8b8d";s:12:"ext_icon.gif";s:4:"7736";s:17:"ext_localconf.php";s:4:"9f06";s:14:"ext_tables.php";s:4:"816b";s:14:"ext_tables.sql";s:4:"d9bc";s:37:"Classes/Hook/DocHeaderButtonsHook.php";s:4:"9e76";s:55:"Classes/Interface/CommunicationServiceHookInterface.php";s:4:"1383";s:40:"Classes/Service/CommunicationService.php";s:4:"1d32";s:43:"Classes/Service/ExtensionSettingService.php";s:4:"3306";s:34:"Classes/Service/LoggingService.php";s:4:"b6f3";s:35:"Classes/Service/TsConfigService.php";s:4:"65b9";s:25:"Documentation/default.vcl";s:4:"2042";s:26:"Documentation/Includes.txt";s:4:"cd93";s:23:"Documentation/Index.rst";s:4:"91e2";s:26:"Documentation/Settings.yml";s:4:"3727";s:43:"Documentation/AdministratorManual/Index.rst";s:4:"9a63";s:46:"Documentation/Images/Introduction/Overview.png";s:4:"2e60";s:36:"Documentation/Introduction/Index.rst";s:4:"8383";s:31:"Documentation/Support/Index.rst";s:4:"384b";s:38:"Resources/Public/Icons/CachePlugin.png";s:4:"4312";}',
 	'suggests' => array(
 	),
 	'conflicts' => '',
