@@ -34,27 +34,27 @@ class tx_vcc_hook_docHeaderButtonsHook {
 	/**
 	 * @var tx_vcc_service_communicationService|NULL
 	 */
-	var $communicationService = NULL;
+	protected $communicationService = NULL;
 
 	/**
 	 * @var template|NULL
 	 */
-	var $pObj = NULL;
+	protected $pObj = NULL;
 
 	/**
 	 * @var array
 	 */
-	var $params = array();
+	protected $params = array();
 
 	/**
 	 * @var string
 	 */
-	var $permsClause = '';
+	protected $permsClause = '';
 
 	/**
 	 * @var tx_vcc_service_tsConfigService|NULL
 	 */
-	var $tsConfigService = NULL;
+	protected $tsConfigService = NULL;
 
 	/**
 	 * Initialize the object

@@ -46,27 +46,25 @@ class tx_vcc_service_loggingService implements t3lib_Singleton {
 	/**
 	 * @var tx_vcc_service_extensionSettingService|NULL
 	 */
-	var $extensionSettingService = NULL;
+	protected $extensionSettingService = NULL;
 
 	/**
 	 * @var integer
 	 */
-	var $debug = 0;
+	protected $debug = 0;
 
 	/**
 	 * @var string
 	 */
-	var $hash = '';
+	protected $hash = '';
 
 	/**
 	 * @var integer
 	 */
-	var $maxLogAge = 0;
+	protected $maxLogAge = 0;
 
 	/**
 	 * Initialize the object
-	 *
-	 * @return void
 	 */
 	public function __construct() {
 		$extensionSettingService = t3lib_div::makeInstance('tx_vcc_service_extensionSettingService');

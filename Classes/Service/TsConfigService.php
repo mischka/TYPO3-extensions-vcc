@@ -34,17 +34,15 @@ class tx_vcc_service_tsConfigService implements t3lib_Singleton {
 	/**
 	 * @var array
 	 */
-	var $configurationArray = array();
+	protected $configurationArray = array();
 
 	/**
 	 * @var tx_vcc_service_loggingService|NULL
 	 */
-	var $loggingService = NULL;
+	protected $loggingService = NULL;
 
 	/**
 	 * Initialize the object
-	 *
-	 * @return void
 	 */
 	public function __construct() {
 		$loggingService = t3lib_div::makeInstance('tx_vcc_service_loggingService');

@@ -34,57 +34,55 @@ class tx_vcc_service_communicationService implements t3lib_Singleton {
 	/**
 	 * @var tslib_cObj|NULL
 	 */
-	var $contentObject = NULL;
+	protected $contentObject = NULL;
 
 	/**
 	 * @var boolean
 	 */
-	var $enableIndexScript = FALSE;
+	protected $enableIndexScript = FALSE;
 
 	/**
 	 * @var tx_vcc_service_extensionSettingService|NULL
 	 */
-	var $extensionSettingService = NULL;
+	protected $extensionSettingService = NULL;
 
 	/**
 	 * @var array
 	 */
-	var $hookObjects = array();
+	protected $hookObjects = array();
 
 	/**
 	 * @var string
 	 */
-	var $httpMethod = '';
+	protected $httpMethod = '';
 
 	/**
 	 * @var string
 	 */
-	var $httpProtocol = '';
+	protected $httpProtocol = '';
 
 	/**
 	 * @var tx_vcc_service_loggingService|NULL
 	 */
-	var $loggingService = NULL;
+	protected $loggingService = NULL;
 
 	/**
 	 * @var array
 	 */
-	var $serverArray = array();
+	protected $serverArray = array();
 
 	/**
 	 * @var boolean
 	 */
-	var $stripSlash = FALSE;
+	protected $stripSlash = FALSE;
 
 	/**
 	 * @var tx_vcc_service_tsConfigService|NULL
 	 */
-	var $tsConfigService = NULL;
+	protected $tsConfigService = NULL;
 
 	/**
 	 * Initialize the object
-	 *
-	 * @return void
 	 */
 	public function __construct() {
 		$extensionSettingService = t3lib_div::makeInstance('tx_vcc_service_extensionSettingService');

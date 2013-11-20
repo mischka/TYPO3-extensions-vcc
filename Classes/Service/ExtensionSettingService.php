@@ -36,12 +36,10 @@ class tx_vcc_service_extensionSettingService implements t3lib_Singleton {
 	/**
 	 * @var array
 	 */
-	var $configuration = array();
+	protected $configuration = array();
 
 	/**
 	 * Initialize the object
-	 *
-	 * @return void
 	 */
 	public function __construct() {
 		$this->configuration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][self::extensionKey]);
