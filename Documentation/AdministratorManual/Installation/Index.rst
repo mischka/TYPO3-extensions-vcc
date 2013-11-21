@@ -5,9 +5,7 @@
 
 .. include:: ../Includes.txt
 
-Introduction
-============
+Installation
+------------
 
-.. include:: WhatDoesItDo/Index.rst
-.. include:: Screenshots/Index.rst
-.. include:: Support/Index.rst
+To install the extension you just need to enable it in the Extension Manager.

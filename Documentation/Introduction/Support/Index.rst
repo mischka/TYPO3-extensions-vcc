@@ -3,11 +3,10 @@
 .. --------------------------------------------------
 .. -*- coding: utf-8 -*- with BOM.
 
-.. include:: ../Includes.txt
-
+.. include:: ../../Includes.txt
 
 Support
-=======
+-------
 
 forge.typo3.org
 ^^^^^^^^^^^^^^^
