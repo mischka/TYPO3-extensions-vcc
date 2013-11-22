@@ -1,3 +1,9 @@
+2013-11-22         [RELEASE] Release of vcc 1.0.2 (Nicole Cordes)
+2013-11-22 1ddaf66 [TASK] Add old manual with link to rest documentation (Nicole Cordes)
+2013-11-22 c40b93d [TASK] Rename administration section in documentation (Nicole Cordes)
+2013-11-21 9ff1d33 [TASK] Restructure documentation (Nicole Cordes)
+2013-11-20 03c9a09 [BUGFIX] Improve code quality according to metrics.typo3.org (Nicole Cordes)
+
 2013-11-18         [RELEASE] Release of vcc 1.0.1 (Nicole Cordes)
 2013-11-18 9f08360 [TASK] Add documentation (Nicole Cordes)
 
