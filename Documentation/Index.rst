@@ -57,4 +57,4 @@ Varnish Cache Control
 
 	Introduction/Index
 	Requirements/Index
-	AdministratorManual/Index
+	Administration/Index

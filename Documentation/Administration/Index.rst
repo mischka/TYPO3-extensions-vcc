@@ -5,8 +5,8 @@
 
 .. include:: ../Includes.txt
 
-Administrator Manual
-====================
+Administration
+==============
 
 .. include:: VarnishConfiguration/Index.rst
 .. include:: Installation/Index.rst
