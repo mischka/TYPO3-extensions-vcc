@@ -115,7 +115,8 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         $this->enableIndexScript = $configuration['enableIndexScript'];
 
         if (!is_object($GLOBALS['TSFE'])) {
-            $this->createTSFE();
+
+            $this->createTSFE(GeneralUtility::_GP('id'));
         }
 
         /** @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer contentObject */
@@ -350,14 +351,28 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
 
     /**
      * Init the TSFE in the Backend to generate PageUrls
+     *
+     * @param int $pageUid
+     * @return \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
      */
-    protected function createTSFE()
+    protected function createTSFE($pageUid)
     {
+        $id = $pageUid;
+        $typeNum = 0;
+
         if (!is_object($GLOBALS['TT'])) {
-            $GLOBALS['TT'] = GeneralUtility::makeInstance('t3lib_TimeTrackNull');
+            /** @var \TYPO3\CMS\Core\TimeTracker\NullTimeTracker */
+            $GLOBALS['TT'] = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\TimeTracker\\NullTimeTracker');
         }
 
-        $GLOBALS['TSFE'] = GeneralUtility::makeInstance('tslib_fe', $GLOBALS['TYPO3_CONF_VARS'], 1, '');
+        /** @var \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController */
+        $GLOBALS['TSFE'] = GeneralUtility::makeInstance(
+            'TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',
+            $GLOBALS['TYPO3_CONF_VARS'],
+            $id,
+            $typeNum
+        );
+
         $GLOBALS['TSFE']->connectToDB();
         $GLOBALS['TSFE']->initFEuser();
         $GLOBALS['TSFE']->determineId();
@@ -371,6 +386,43 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         $GLOBALS['TSFE']->newcObj();
 
         PageGenerator::pagegenInit();
+
+        return $GLOBALS['TSFE'];
+    }
+
+    /**
+     * Alternative way
+     *
+     * http://www.kalpatech.in/blog/detail/article/typo3-how-to-create-typolinks-in-a-schedulercron-script.html
+     */
+    protected function initTSFE($pageUid)
+    {
+        $id = $pageUid;
+        $typeNum = 0;
+
+        if (!is_object($GLOBALS['TT'])) {
+            /** @var \TYPO3\CMS\Core\TimeTracker\NullTimeTracker */
+            $GLOBALS['TT'] = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\TimeTracker\\NullTimeTracker');
+            $GLOBALS['TT']->start();
+        }
+        $GLOBALS['TSFE'] = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
+            'TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController',
+            $GLOBALS['TYPO3_CONF_VARS'],
+            $id,
+            $typeNum
+        );
+
+        $GLOBALS['TSFE']->connectToDB();
+        $GLOBALS['TSFE']->initFEuser();
+        $GLOBALS['TSFE']->determineId();
+        $GLOBALS['TSFE']->initTemplate();
+        $GLOBALS['TSFE']->getConfigArray();
+
+        if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
+            $rootline = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($id);
+            $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
+            $_SERVER['HTTP_HOST'] = $host;
+        }
     }
 
     /**
