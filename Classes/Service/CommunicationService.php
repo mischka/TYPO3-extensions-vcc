@@ -96,15 +96,15 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
     public function __construct()
     {
         /** @var \CPSIT\Vcc\Service\ExtensionSettingService $extensionSettingService */
-        $extensionSettingService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\ExtensionSettingService $extensionSettingService');
+        $extensionSettingService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\ExtensionSettingService');
         $this->injectExtensionSettingService($extensionSettingService);
 
         /** @var \CPSIT\Vcc\Service\LoggingService $loggingService */
-        $loggingService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\LoggingService');
+        $loggingService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\LoggingService');
         $this->injectLoggingService($loggingService);
 
         /** @var \CPSIT\Vcc\Service\TsConfigService $tsConfigService */
-        $tsConfigService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\TsConfigService');
+        $tsConfigService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\TsConfigService');
         $this->injectTsConfigService($tsConfigService);
 
         $configuration = $this->extensionSettingService->getConfiguration();

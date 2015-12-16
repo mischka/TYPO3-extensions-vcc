@@ -53,7 +53,7 @@ class TsConfigService implements \TYPO3\CMS\Core\SingletonInterface
     public function __construct()
     {
         /** @var \CPSIT\Vcc\Service\LoggingService $loggingService */
-        $loggingService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\LoggingService\\LoggingService');
+        $loggingService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\LoggingService');
         $this->injectLoggingService($loggingService);
     }
 
