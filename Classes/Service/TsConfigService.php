@@ -1,4 +1,6 @@
 <?php
+namespace CPSIT\Vcc\Service;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -22,6 +24,9 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Backend\Utility\BackendUtility;
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * Service to handle TSConfig settings
  *
@@ -29,63 +34,66 @@
  * @package TYPO3
  * @subpackage vcc
  */
-class tx_vcc_service_tsConfigService implements t3lib_Singleton {
+class TsConfigService implements \TYPO3\CMS\Core\SingletonInterface
+{
 
-	/**
-	 * @var array
-	 */
-	protected $configurationArray = array();
+    /**
+     * @var array
+     */
+    protected $configurationArray = array();
 
-	/**
-	 * @var tx_vcc_service_loggingService|NULL
-	 */
-	protected $loggingService = NULL;
+    /**
+     * @var \CPSIT\Vcc\Service\LoggingService|null
+     */
+    protected $loggingService = null;
 
-	/**
-	 * Initialize the object
-	 */
-	public function __construct() {
-		$loggingService = t3lib_div::makeInstance('tx_vcc_service_loggingService');
-		$this->injectLoggingService($loggingService);
-	}
+    /**
+     * Initialize the object
+     */
+    public function __construct()
+    {
+        /** @var \CPSIT\Vcc\Service\LoggingService $loggingService */
+        $loggingService = GeneralUtility::makeInstance('CPSIT\\Vcc\\Service\\LoggingService\\LoggingService');
+        $this->injectLoggingService($loggingService);
+    }
 
-	/**
-	 * Injects the logging service
-	 *
-	 * @param tx_vcc_service_loggingService $loggingService
-	 *
-	 * @return void
-	 */
-	public function injectLoggingService(tx_vcc_service_loggingService $loggingService) {
-		$this->loggingService = $loggingService;
-	}
+    /**
+     * Injects the logging service
+     *
+     * @param \CPSIT\Vcc\Service\LoggingService $loggingService
+     *
+     * @return void
+     */
+    public function injectLoggingService(LoggingService $loggingService)
+    {
+        $this->loggingService = $loggingService;
+    }
 
-	/**
-	 * Returns the configuration
-	 *
-	 * @param integer $id
-	 *
-	 * @return array
-	 */
-	public function getConfiguration($id) {
-		if (!isset($this->configurationArray[$id])) {
-			$modTsConfig = t3lib_BEfunc::getModTSconfig($id, 'mod.vcc');
-			$this->configurationArray[$id] = $modTsConfig['properties'];
+    /**
+     * Returns the configuration
+     *
+     * @param integer $id
+     *
+     * @return array
+     */
+    public function getConfiguration($id)
+    {
+        if (!isset($this->configurationArray[$id])) {
+            $modTsConfig = BackendUtility::getModTSconfig($id, 'mod.vcc');
+            $this->configurationArray[$id] = $modTsConfig['properties'];
 
-			// Log debug information
-			$logData = array(
-				'id' => $id,
-				'configuration' => $modTsConfig['properties']
-			);
-			$this->loggingService->debug('TsConfigService::getConfiguration id: ' . $id, $logData);
-		}
+            // Log debug information
+            $logData = array(
+                'id' => $id,
+                'configuration' => $modTsConfig['properties']
+            );
+            $this->loggingService->debug('TsConfigService::getConfiguration id: ' . $id, $logData);
+        }
 
-		return $this->configurationArray[$id];
-	}
+        return $this->configurationArray[$id];
+    }
 }
 
 if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/TsConfigService.php']) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/TsConfigService.php']);
+    include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/TsConfigService.php']);
 }
-
-?>

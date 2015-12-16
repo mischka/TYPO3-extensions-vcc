@@ -1,4 +1,6 @@
 <?php
+namespace CPSIT\Vcc\Service;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -29,45 +31,47 @@
  * @package TYPO3
  * @subpackage vcc
  */
-class tx_vcc_service_extensionSettingService implements t3lib_Singleton {
+class ExtensionSettingService implements \TYPO3\CMS\Core\SingletonInterface
+{
 
-	const extensionKey = 'vcc';
+    const extensionKey = 'vcc';
 
-	/**
-	 * @var array
-	 */
-	protected $configuration = array();
+    /**
+     * @var array
+     */
+    protected $configuration = array();
 
-	/**
-	 * Initialize the object
-	 */
-	public function __construct() {
-		$this->configuration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][self::extensionKey]);
-	}
+    /**
+     * Initialize the object
+     */
+    public function __construct()
+    {
+        $this->configuration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][self::extensionKey]);
+    }
 
-	/**
-	 * Injects the logging service
-	 *
-	 * @param tx_vcc_service_loggingService $loggingService
-	 *
-	 * @return void
-	 */
-	public function injectLoggingService(tx_vcc_service_loggingService $loggingService) {
-		$this->loggingService = $loggingService;
-	}
+    /**
+     * Injects the logging service
+     *
+     * @param \CPSIT\Vcc\Service\LoggingService $loggingService
+     *
+     * @return void
+     */
+    public function injectLoggingService(LoggingService $loggingService)
+    {
+        $this->loggingService = $loggingService;
+    }
 
-	/**
-	 * Returns the configuration
-	 *
-	 * @return array
-	 */
-	public function getConfiguration() {
-		return $this->configuration;
-	}
+    /**
+     * Returns the configuration
+     *
+     * @return array
+     */
+    public function getConfiguration()
+    {
+        return $this->configuration;
+    }
 }
 
 if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/ExtensionSettingService.php']) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/ExtensionSettingService.php']);
+    include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Service/ExtensionSettingService.php']);
 }
-
-?>

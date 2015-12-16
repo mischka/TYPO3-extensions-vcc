@@ -1,4 +1,6 @@
 <?php
+namespace CPSIT\Vcc\Hook;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -29,32 +31,31 @@
  * @package TYPO3
  * @subpackage vcc
  */
-interface tx_vcc_hook_communicationServiceHookInterface {
+interface CommunicationServiceHookInterface
+{
 
-	/**
-	 * Function which is called before the request is sent to the server
-	 *
-	 * @param resource $ch
-	 * @param string $request
-	 * @param array $response
-	 * @param tx_vcc_service_communicationService $pObj
-	 *
-	 * @return void
-	 */
-	public function preProcess(&$ch, &$request, &$response, &$pObj);
+    /**
+     * Function which is called before the request is sent to the server
+     *
+     * @param resource $ch
+     * @param string $request
+     * @param array $response
+     * @param \CPSIT\Vcc\Service\CommunicationService $pObj
+     *
+     * @return void
+     */
+    public function preProcess(&$ch, &$request, &$response, &$pObj);
 
-	/**
-	 * Function which is called after the request was sent to the server and
-	 * some response options were set
-	 *
-	 * @param resource $ch
-	 * @param string $request
-	 * @param array $response
-	 * @param tx_vcc_service_communicationService $pObj
-	 *
-	 * @return void
-	 */
-	public function postProcess(&$ch, &$request, &$response, &$pObj);
+    /**
+     * Function which is called after the request was sent to the server and
+     * some response options were set
+     *
+     * @param resource $ch
+     * @param string $request
+     * @param array $response
+     * @param \CPSIT\Vcc\Service\CommunicationService $pObj
+     *
+     * @return void
+     */
+    public function postProcess(&$ch, &$request, &$response, &$pObj);
 }
-
-?>
