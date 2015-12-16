@@ -19,3 +19,9 @@ CREATE TABLE tx_vcc_log (
 	KEY parent (pid),
 	KEY hash (hash)
 );
+#
+# Extend table structure of table 'sys_domain'
+#
+CREATE TABLE sys_domain (
+	vcc_enabled tinyint(4) unsigned DEFAULT '0' NOT NULL
+);

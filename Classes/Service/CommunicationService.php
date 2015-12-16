@@ -40,15 +40,24 @@ use \TYPO3\CMS\Frontend\Page\PageGenerator;
 class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
 {
 
+    const HTTP_VERSION_1_0 = 'http_10';
+
+    const HTTP_VERSION_1_1 = 'http_11';
+
     /**
      * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer|null
      */
     protected $contentObject = null;
 
     /**
-     * @var boolean
+     * @var bool
      */
     protected $enableIndexScript = false;
+
+    /**
+     * @var bool
+     */
+    protected $enableSysDomainConfig = false;
 
     /**
      * @var \CPSIT\Vcc\Service\ExtensionSettingService|null
@@ -113,6 +122,7 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         $this->httpProtocol = trim($configuration['httpProtocol']);
         $this->stripSlash = $configuration['stripSlash'];
         $this->enableIndexScript = $configuration['enableIndexScript'];
+        $this->enableSysDomainConfig = (bool)$configuration['enableSysDomainConfig'];
 
         if (!is_object($GLOBALS['TSFE'])) {
 
@@ -463,9 +473,17 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
                     $hostArray = GeneralUtility::trimExplode(',', $host, 1);
                 } else {
                     // Get all (non-redirecting) domains from root
+                    $where = ' AND redirectTo="" AND hidden=0';
+                    if (true === $this->enableSysDomainConfig) {
+                        $where = ' AND vcc_enabled = 1';
+                    }
+
+                    //sysDomainEnabled
+
                     $rootLine = BackendUtility::BEgetRootLine($pid);
                     foreach ($rootLine as $row) {
-                        $domainArray = BackendUtility::getRecordsByField('sys_domain', 'pid', $row['uid'], ' AND redirectTo="" AND hidden=0');
+
+                        $domainArray = BackendUtility::getRecordsByField('sys_domain', 'pid', $row['uid'], $where);
                         if (is_array($domainArray) && !empty($domainArray)) {
                             foreach ($domainArray as $domain) {
                                 $hostArray[] = $domain['domainName'];
@@ -486,57 +504,7 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
                 foreach ($hostArray as $xHost) {
                     $response['host'] = $xHost;
 
-                    // Curl initialization
-                    $ch = curl_init();
-
-                    // Disable direct output
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-                    // Only get header response
-                    curl_setopt($ch, CURLOPT_HEADER, 1);
-                    curl_setopt($ch, CURLOPT_NOBODY, 1);
-
-                    // Set url
-                    curl_setopt($ch, CURLOPT_URL, $request);
-
-                    // Set method and protocol
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->httpMethod);
-                    curl_setopt($ch, CURLOPT_HTTP_VERSION, ($this->httpProtocol === 'http_10') ? CURL_HTTP_VERSION_1_0 : CURL_HTTP_VERSION_1_1);
-
-                    // Set X-Host and X-Url header
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                        'X-Host: ' . (($quote) ? preg_quote($xHost) : $xHost),
-                        'X-Url: ' . (($quote) ? preg_quote($url) : $url),
-                    ));
-
-                    // Store outgoing header
-                    curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
-
-                    // Include preProcess hook (e.g. to set some alternative curl options
-                    foreach ($this->hookObjects as $hookObject) {
-                        /** @var \CPSIT\Vcc\Hook\CommunicationServiceHookInterface $hookObject */
-                        $hookObject->preProcess($ch, $request, $response, $this);
-                    }
-                    unset($hookObject);
-
-                    $header = curl_exec($ch);
-                    if (!curl_error($ch)) {
-                        $response['status'] = (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) ? FlashMessage::OK : FlashMessage::ERROR;
-                        $response['message'] = preg_split('/(\r|\n)+/m', trim($header));
-                    } else {
-                        $response['status'] = FlashMessage::ERROR;
-                        $response['message'] = array(curl_error($ch));
-                    }
-                    $response['requestHeader'] = preg_split('/(\r|\n)+/m', trim(curl_getinfo($ch, CURLINFO_HEADER_OUT)));
-
-                    // Include postProcess hook (e.g. to start some other jobs)
-                    foreach ($this->hookObjects as $hookObject) {
-                        /** @var \CPSIT\Vcc\Hook\CommunicationServiceHookInterface $hookObject */
-                        $hookObject->postProcess($ch, $request, $response, $this);
-                    }
-                    unset($hookObject);
-
-                    curl_close($ch);
+                    $response = $this->processCurlRequest($request, $xHost, $url, $quote, $response);
 
                     // Log debug information
                     $logData = array(
@@ -556,6 +524,63 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         unset($server);
 
         return $responseArray;
+    }
+
+    protected function processCurlRequest($request, $xHost, $url, $quote, $response)
+    {
+        // Curl initialization
+        $ch = curl_init();
+
+        // Disable direct output
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        // Only get header response
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+        curl_setopt($ch, CURLOPT_NOBODY, 1);
+
+        // Set url
+        curl_setopt($ch, CURLOPT_URL, $request);
+
+        // Set method and protocol
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->httpMethod);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, ($this->httpProtocol === static::HTTP_VERSION_1_0) ? CURL_HTTP_VERSION_1_0 : CURL_HTTP_VERSION_1_1);
+
+        // Set X-Host and X-Url header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'X-Host: ' . (($quote) ? preg_quote($xHost) : $xHost),
+            'X-Url: ' . (($quote) ? preg_quote($url) : $url),
+        ));
+
+        // Store outgoing header
+        curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
+
+        // Include preProcess hook (e.g. to set some alternative curl options
+        foreach ($this->hookObjects as $hookObject) {
+            /** @var \CPSIT\Vcc\Hook\CommunicationServiceHookInterface $hookObject */
+            $hookObject->preProcess($ch, $request, $response, $this);
+        }
+        unset($hookObject);
+
+        $header = curl_exec($ch);
+        if (!curl_error($ch)) {
+            $response['status'] = (curl_getinfo($ch, CURLINFO_HTTP_CODE) == 200) ? FlashMessage::OK : FlashMessage::ERROR;
+            $response['message'] = preg_split('/(\r|\n)+/m', trim($header));
+        } else {
+            $response['status'] = FlashMessage::ERROR;
+            $response['message'] = array(curl_error($ch));
+        }
+        $response['requestHeader'] = preg_split('/(\r|\n)+/m', trim(curl_getinfo($ch, CURLINFO_HEADER_OUT)));
+
+        // Include postProcess hook (e.g. to start some other jobs)
+        foreach ($this->hookObjects as $hookObject) {
+            /** @var \CPSIT\Vcc\Hook\CommunicationServiceHookInterface $hookObject */
+            $hookObject->postProcess($ch, $request, $response, $this);
+        }
+        unset($hookObject);
+
+        curl_close($ch);
+
+        return $response;
     }
 
     /**

@@ -18,3 +18,5 @@ maxLogAge = 30
 
 # cat=basic/enable/070; type=boolean; label=Debug mode: Enable debug mode to log additional information.
 debug = 0
+# cat=feature/enable/110; type=boolean; label=SysDomain Feature: Enable filter sys_domain via checkbox.
+enableSysDomainConfig = 0
