@@ -547,7 +547,7 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
 
         // Set X-Host and X-Url header
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'X-Host: ' . (($quote) ? preg_quote($xHost) : $xHost),
+            'X-Host: ' . $xHost,
             'X-Url: ' . (($quote) ? preg_quote($url) : $url),
         ));
 
