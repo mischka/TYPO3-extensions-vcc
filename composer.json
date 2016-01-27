@@ -1,7 +1,7 @@
 {
 	"name": "cpsitgmbh/vcc",
 	"type": "typo3-cms-extension",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Extension to clear Varnish cache on demand",
 	"homepage": "http://typo3.org",
 	"license": ["GPL-2.0"],

@@ -24,15 +24,40 @@ namespace CPSIT\Vcc\Controller;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use \TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use \TYPO3\CMS\Backend\Utility\IconUtility;
+use \TYPO3\CMS\Core\Messaging\FlashMessage;
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+
+use \CPSIT\Vcc\Service\CommunicationService;
+use \CPSIT\Vcc\Service\TsConfigService;
+
 /**
  * Class VccBackendController
  * @package CPSIT\Vcc\Controller
  *
  * @see http://stackoverflow.com/questions/25197920/how-do-i-add-own-buttons-in-typo3-backend-to-call-extension-method
+ * @see \TYPO3\CMS\SysAction\ActionToolbarMenu
+ * @see \TYPO3\CMS\Opendocs\Controller\OpendocsController
  */
-class VccBackendController implements \TYPO3\CMS\Backend\Toolbar\ToolbarItemHookInterface
+class VccBackendController
 {
-    protected $EXTKEY = 'vcc';
+    protected $extensionKey = 'vcc';
+
+    /**
+     * @var \TYPO3\CMS\Backend\Controller\BackendController
+     */
+    protected $backendReference;
+
+    /**
+     * @var \CPSIT\Vcc\Service\CommunicationService|null
+     */
+    protected $communicationService = null;
+
+    /**
+     * @var \CPSIT\Vcc\Service\TsConfigService|null
+     */
+    protected $tsConfigService = null;
 
     /**
      * Constructor that receives a back reference to the backend
@@ -41,7 +66,42 @@ class VccBackendController implements \TYPO3\CMS\Backend\Toolbar\ToolbarItemHook
      */
     public function __construct(\TYPO3\CMS\Backend\Controller\BackendController &$backendReference = null)
     {
-        parent::__construct($backendReference);
+        //parent::__construct($backendReference);
+        $this->backendReference = $backendReference;
+
+        /** @var \CPSIT\Vcc\Service\CommunicationService $communicationService */
+        $communicationService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\CommunicationService');
+        $this->injectCommunicationService($communicationService);
+
+        /** @var \CPSIT\Vcc\Service\TsConfigService $tsConfigService */
+        $tsConfigService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\TsConfigService');
+        $this->injectTsConfigService($tsConfigService);
+
+        $this->permsClause = $GLOBALS['BE_USER']->getPagePermsClause(2);
+    }
+
+    /**
+     * Injects the communication service
+     *
+     * @param \CPSIT\Vcc\Service\CommunicationService $communicationService
+     *
+     * @return void
+     */
+    public function injectCommunicationService(CommunicationService $communicationService)
+    {
+        $this->communicationService = $communicationService;
+    }
+
+    /**
+     * Injects the TSConfig service
+     *
+     * @param \CPSIT\Vcc\Service\TsConfigService $tsConfigService
+     *
+     * @return void
+     */
+    public function injectTsConfigService(TsConfigService $tsConfigService)
+    {
+        $this->tsConfigService = $tsConfigService;
     }
 
     /**
@@ -52,25 +112,55 @@ class VccBackendController implements \TYPO3\CMS\Backend\Toolbar\ToolbarItemHook
     public function checkAccess()
     {
         // TODO: Implement checkAccess() method.
+        //$this->
+        return true;
     }
 
     /**
-     * Renders the toolbar item
      *
-     * @return string The toolbar item rendered as HTML string
+     *
+     * @see https://docs.typo3.org/typo3cms/CoreApiReference/JavaScript/Ajax/Backend/Index.html
+     *
+     * @param array $params Array of parameters from the AJAX interface, currently unused
+     * @param \TYPO3\CMS\Core\Http\AjaxRequestHandler $ajaxObj Object of type AjaxRequestHandler
+     * @return void
      */
-    public function render()
+    public function flushCacheAction($params = array(), \TYPO3\CMS\Core\Http\AjaxRequestHandler &$ajaxObj = null)
     {
-        // TODO: Implement render() method.
+        //$menuContent = $this->renderMenu();
+        //var_dump($ajaxObj, $params);
+
+        // Get All Domain records with enabled if set
+        // Ban with wildcard if set
+
+
     }
 
     /**
-     * Returns additional attributes for the list item in the toolbar
      *
-     * @return string List item HTML attibutes
+     *
+     * @see https://docs.typo3.org/typo3cms/CoreApiReference/JavaScript/Ajax/Backend/Index.html
+     *
+     * @param array $params Array of parameters from the AJAX interface, currently unused
+     * @param \TYPO3\CMS\Core\Http\AjaxRequestHandler $ajaxObj Object of type AjaxRequestHandler
+     * @return void
      */
-    public function getAdditionalAttributes()
+    public function banCacheAction($params = array(), \TYPO3\CMS\Core\Http\AjaxRequestHandler &$ajaxObj = null)
     {
-        // TODO: Implement getAdditionalAttributes() method.
+        $table = GeneralUtility::_GP('table');
+        $record = GeneralUtility::_GP('record');
+        $uid = $record['uid'];
+
+        if (empty($table) || empty($uid)) {
+
+            $ajaxObj->setError('No Table or Uid found!');
+
+        } else {
+
+            $results = $this->communicationService->sendClearCacheCommandForTables($table, $uid);
+
+            $ajaxObj->addContent('results', $results);
+            $ajaxObj->setContentFormat('json');
+        }
     }
 }

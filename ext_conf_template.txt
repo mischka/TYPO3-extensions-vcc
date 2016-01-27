@@ -21,5 +21,13 @@ debug = 0
 # cat=feature/enable/110; type=boolean; label=SysDomain Feature: Enable filter sys_domain via checkbox.
 enableSysDomainConfig = 0
 
-# cat=feature/enable/120; type=int; label=Siteroot Feature: Pageid of the default siteroot (workaround if the siteroot is not fount)
+# cat=feature/enable/120; type=boolean; label=Clear Cache Action Feature: Enable Button in Cache Toolbar.
+enableClearCacheAction = 1
+
+
+# cat=feature/enable/130; type=string; label=Deny PagesTypes Feature: List of pagestypes which are not allowed.
+denyPagesTypes = 254,255,3
+
+# cat=feature/enable/130; type=int; label=Siteroot Feature: Pageid of the default siteroot (workaround if the siteroot is not fount)
 siterootUidFallback = 1
+

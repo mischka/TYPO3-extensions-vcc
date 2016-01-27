@@ -42,11 +42,6 @@ class DocHeaderButtonsHook
 {
 
     /**
-     * @var \CPSIT\Vcc\Service\CommunicationService|null
-     */
-    protected $communicationService = null;
-
-    /**
      * @var \TYPO3\CMS\Backend\Template\DocumentTemplate|null
      */
     protected $pObj = null;
@@ -69,32 +64,15 @@ class DocHeaderButtonsHook
     /**
      * Initialize the object
      *
-     * @todo initialisation of the CommunicationService throws an error if you in a sysfolder and you don't have defiend an siteroot fallback
-     *
      */
     public function __construct()
     {
-        /** @var \CPSIT\Vcc\Service\CommunicationService $communicationService */
-        $communicationService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\CommunicationService');
-        $this->injectCommunicationService($communicationService);
 
         /** @var \CPSIT\Vcc\Service\TsConfigService $tsConfigService */
         $tsConfigService = GeneralUtility::makeInstance('CPSIT\Vcc\Service\TsConfigService');
         $this->injectTsConfigService($tsConfigService);
 
         $this->permsClause = $GLOBALS['BE_USER']->getPagePermsClause(2);
-    }
-
-    /**
-     * Injects the communication service
-     *
-     * @param \CPSIT\Vcc\Service\CommunicationService $communicationService
-     *
-     * @return void
-     */
-    public function injectCommunicationService(CommunicationService $communicationService)
-    {
-        $this->communicationService = $communicationService;
     }
 
     /**
@@ -121,6 +99,11 @@ class DocHeaderButtonsHook
     {
         $this->params = $params;
         $this->pObj = $pObj;
+
+        // Add JS
+        $pObj->getPageRenderer()->addJsFile(
+            \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('vcc') . 'Resources/Public/JavaScript/Vcc.js'
+        );
 
         $record = array();
         $table = '';
@@ -161,17 +144,17 @@ class DocHeaderButtonsHook
             }
         }
 
-
         if (isset($record['pid']) && $record['pid'] > 0) {
             if ($this->isModuleAccessible($record['pid'], $table)) {
-                // Process last request
-                $button = $this->process($table, $record['uid']);
 
+                // Process last request
+                //$button = $this->process($table, $record['uid']);
+                $button = '';
                 // Generate button with form for list view
                 if ($this->pObj->scriptID === 'ext/recordlist/mod1/index.php') {
-                    $button .= $this->generateButton(TRUE);
+                    $button .= $this->generateButton($table, $record, true);
                 } else { // Generate plain input button
-                    $button .= $this->generateButton();
+                    $button .= $this->generateButton($table, $record);
                 }
 
                 // Add button to button list and extend layout
@@ -189,20 +172,15 @@ class DocHeaderButtonsHook
      *
      * @return string
      */
-    protected function generateButton($wrapWithForm = false)
+    protected function generateButton($table, $record, $wrapWithForm = false)
     {
-        $html = '<input type="image" class="c-inputButton" name="_clearvarnishcache" src="clear.gif" title="Clear Varnish cache" />';
+        $url = BackendUtility::getAjaxUrl('VccBackendController::banCache', ['table' => $table, 'record' => $record]);
 
-        if ($wrapWithForm) {
-            $html = '<form action="' . GeneralUtility::getindpenv('REQUEST_URI') . '" method="post">' . $html . '</form>';
-        }
+        $html = '<a href="#" onclick="Vcc.process(this, \'' . $url . '\'); return false;" title="Clear Varnish cache">'
+            . IconUtility::getSpriteIcon('extensions-vcc-clearVarnishCache')
+            . '</a>';
 
-        return IconUtility::getSpriteIcon(
-            'extensions-vcc-clearVarnishCache',
-            array(
-                'html' => $html
-            )
-        );
+        return $html;
     }
 
     /**
@@ -220,34 +198,26 @@ class DocHeaderButtonsHook
         // Check edit rights for page as cache can be flushed then only
         $pageinfo = BackendUtility::readPageAccess($pageId, $this->permsClause);
         if ($pageinfo !== false) {
-            // Get TSconfig for extension
-            $tsConfig = $this->tsConfigService->getConfiguration($pageId);
-            if (isset($tsConfig[$table]) && !empty($tsConfig[$table])) {
-                $access = TRUE;
+
+
+            // Don not allow sys_folders
+            $denyPagesTypes = [254, 255, 3];
+
+            if(!empty($denyPagesTypes) && 'pages' == $table && in_array($pageinfo['doktype'], $denyPagesTypes)) {
+                $access = false;
+
+            } else {
+                // Get TSconfig for extension
+                $tsConfig = $this->tsConfigService->getConfiguration($pageId);
+                if (isset($tsConfig[$table]) && !empty($tsConfig[$table])) {
+                    $access = true;
+                }
             }
         }
 
         return $access;
     }
 
-    /**
-     * Evaluate request and send clear cache commands
-     *
-     * @param string $table
-     * @param integer $uid
-     *
-     * @return string
-     */
-    protected function process($table, $uid)
-    {
-        $string = '';
-        if (isset($_POST['_clearvarnishcache_x'])) {
-            $resultArray = $this->communicationService->sendClearCacheCommandForTables($table, $uid);
-            $string = $this->communicationService->generateBackendMessage($resultArray);
-        }
-
-        return $string;
-    }
 }
 
 if (defined('TYPO3_MODE') && $GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/vcc/Classes/Hook/DocHeaderButtonsHook.php']) {
