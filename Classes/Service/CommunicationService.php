@@ -60,6 +60,11 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
     protected $enableSysDomainConfig = false;
 
     /**
+     * @var int
+     */
+    protected $siterootUidFallback = 1;
+
+    /**
      * @var \CPSIT\Vcc\Service\ExtensionSettingService|null
      */
     protected $extensionSettingService = null;
@@ -123,10 +128,12 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         $this->stripSlash = $configuration['stripSlash'];
         $this->enableIndexScript = $configuration['enableIndexScript'];
         $this->enableSysDomainConfig = (bool)$configuration['enableSysDomainConfig'];
+        $this->siterootUidFallback = (int)$configuration['siterootUidFallback'];
 
         if (!is_object($GLOBALS['TSFE'])) {
 
             $this->createTSFE(GeneralUtility::_GP('id'));
+            //$this->initTSFE(GeneralUtility::_GP('id'));
         }
 
         /** @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer contentObject */
@@ -312,6 +319,10 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
 
         $tsConfig = $this->tsConfigService->getConfiguration($pid);
         $typolink = $tsConfig[$table . '.']['typolink.'];
+
+        // force access
+        $typolink['linkAccessRestrictedPages'] = 1;
+
         $this->contentObject->data = $record;
 
         $url = $this->contentObject->typoLink_URL($typolink);
@@ -367,8 +378,23 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
      */
     protected function createTSFE($pageUid)
     {
-        $id = $pageUid;
+        $id = $this->siterootUidFallback;
         $typeNum = 0;
+        //$siterootNotFound = true;
+
+        /**
+         * Find SiteRoot to avoid problems with restricted pages
+         * @see
+         */
+        $rootLine = BackendUtility::BEgetRootLine($pageUid);
+        foreach ($rootLine as $rC) {
+            if ($rC['is_siteroot']) {
+                $id = (int)$rC['uid'];
+                //$siterootNotFound = false;
+                break;
+            }
+        }
+
 
         if (!is_object($GLOBALS['TT'])) {
             /** @var \TYPO3\CMS\Core\TimeTracker\NullTimeTracker */
@@ -386,6 +412,7 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
         $GLOBALS['TSFE']->connectToDB();
         $GLOBALS['TSFE']->initFEuser();
         $GLOBALS['TSFE']->determineId();
+
         $GLOBALS['TSFE']->getCompressedTCarray();
         $GLOBALS['TSFE']->initTemplate();
         $GLOBALS['TSFE']->getConfigArray();
@@ -433,6 +460,8 @@ class CommunicationService implements \TYPO3\CMS\Core\SingletonInterface
             $host = \TYPO3\CMS\Backend\Utility\BackendUtility::firstDomainRecord($rootline);
             $_SERVER['HTTP_HOST'] = $host;
         }
+
+        return $GLOBALS['TSFE'];
     }
 
     /**

@@ -20,3 +20,6 @@ maxLogAge = 30
 debug = 0
 # cat=feature/enable/110; type=boolean; label=SysDomain Feature: Enable filter sys_domain via checkbox.
 enableSysDomainConfig = 0
+
+# cat=feature/enable/120; type=int; label=Siteroot Feature: Pageid of the default siteroot (workaround if the siteroot is not fount)
+siterootUidFallback = 1

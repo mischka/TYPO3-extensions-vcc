@@ -69,6 +69,8 @@ class DocHeaderButtonsHook
     /**
      * Initialize the object
      *
+     * @todo initialisation of the CommunicationService throws an error if you in a sysfolder and you don't have defiend an siteroot fallback
+     *
      */
     public function __construct()
     {
@@ -158,6 +160,7 @@ class DocHeaderButtonsHook
                 }
             }
         }
+
 
         if (isset($record['pid']) && $record['pid'] > 0) {
             if ($this->isModuleAccessible($record['pid'], $table)) {
