@@ -101,10 +101,11 @@ class DocHeaderButtonsHook
         $this->pObj = $pObj;
 
         // Add JS
+        /*
         $pObj->getPageRenderer()->addJsFile(
             \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('vcc') . 'Resources/Public/JavaScript/Vcc.js'
         );
-
+        */
         $record = array();
         $table = '';
 
@@ -176,7 +177,7 @@ class DocHeaderButtonsHook
     {
         $url = BackendUtility::getAjaxUrl('VccBackendController::banCache', ['table' => $table, 'record' => $record]);
 
-        $html = '<a href="#" onclick="Vcc.process(this, \'' . $url . '\'); return false;" title="Clear Varnish cache">'
+        $html = '<a href="#" onclick="top.Vcc.process(this, \'' . $url . '\'); return false;" title="Clear Varnish cache">'
             . IconUtility::getSpriteIcon('extensions-vcc-clearVarnishCache')
             . '</a>';
 

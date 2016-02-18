@@ -68,6 +68,16 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['additionalBackendItems']['cacheAction
 	'CPSIT\\Vcc\\Controller\\VccBackendController->banCacheAction'
 );
 
+// Add Javascript
+if (!isset($GLOBALS['TBE_MODULES']['_configuration']['web'])) {
+	$GLOBALS['TBE_MODULES']['_configuration']['web'] = array();
+}
+if (!isset($GLOBALS['TBE_MODULES']['_configuration']['web']['jsFiles'])) {
+	$GLOBALS['TBE_MODULES']['_configuration']['web']['jsFiles'] = array();
+}
+$GLOBALS['TBE_MODULES']['_configuration']['web']['jsFiles'][] = 'EXT:' . $_EXTKEY . '/Resources/Public/JavaScript/Vcc.js';
+
+
 // Register hook to add the cache clear button to configured items in different views
 if (\TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(
 		\TYPO3\CMS\Core\Utility\VersionNumberUtility::getCurrentTypo3Version()) < 7006000
